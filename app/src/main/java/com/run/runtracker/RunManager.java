@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 
@@ -38,6 +39,12 @@ public class RunManager {
 
     public void startLoactionUpdates() {
         String provider = LocationManager.GPS_PROVIDER;
+        Location lastKnown=mLocationManager.getLastKnownLocation(provider);
+        if(lastKnown!=null){
+            lastKnown.setTime(System.currentTimeMillis());
+            broadcastLaction(lastKnown);
+        }
+
         PendingIntent pi = getPendingIntent(true);
         if (ActivityCompat.checkSelfPermission(mApp, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mApp, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -51,6 +58,12 @@ public class RunManager {
         }
         mLocationManager.requestLocationUpdates(provider, 0, 0, pi);
 
+    }
+
+    private void broadcastLaction(Location lastKnown) {
+        Intent broadcast=new Intent(ACTION_LOCATION);
+        broadcast.putExtra(LocationManager.KEY_LOCATION_CHANGED,lastKnown);
+        mApp.sendBroadcast(broadcast);
     }
 
     public void stopLocationUpdates(){
